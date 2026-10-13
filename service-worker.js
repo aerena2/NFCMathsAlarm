@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "nfc-maths-alarm-v1";
+const CACHE_NAME = "nfc-maths-alarm-v2";
 
 const APP_FILES = [
     "./",
