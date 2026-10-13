@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#172554">
-    <meta name="description" content="An NFC alarm that challenges you with five maths questions.">
+    <meta name="description" content="An NFC alarm with five maths questions.">
 
     <title>NFC Maths Alarm</title>
 
@@ -14,63 +14,97 @@
 
     <script src="./app.js" defer></script>
 </head>
+
 <body>
     <main class="app">
+
         <header class="app-header">
             <p class="eyebrow">WAKE UP WITH A CHALLENGE</p>
             <h1>NFC Maths Alarm</h1>
-            <p class="subtitle">Scan your NFC tag and solve five questions to stop your alarm.</p>
+            <p class="subtitle">
+                Scan your NFC tag and solve five questions
+                to stop your alarm.
+            </p>
         </header>
 
-        <section class="card clock-card">
-            <p class="section-label">CURRENT TIME</p>
-            <div id="clock" class="clock">--:--:--</div>
-            <p id="date" class="date"></p>
-        </section>
+        <!-- Initial screen: only alarm controls -->
 
         <section class="card">
             <h2>Set your alarm</h2>
 
             <label for="alarmTime">Choose date and time</label>
-            <input type="datetime-local" id="alarmTime" required>
+            <input
+                type="datetime-local"
+                id="alarmTime"
+                required
+            >
 
             <div class="button-row">
                 <button type="button" id="setAlarmButton">
                     Set Alarm
                 </button>
 
-                <button type="button" id="cancelAlarmButton" class="secondary">
+                <button
+                    type="button"
+                    id="cancelAlarmButton"
+                    class="secondary"
+                >
                     Cancel Alarm
                 </button>
             </div>
 
-            <p id="alarmStatus" class="status" role="status" aria-live="polite">
+            <p
+                id="alarmStatus"
+                class="status"
+                role="status"
+                aria-live="polite"
+            >
                 No alarm set.
             </p>
         </section>
 
-        <section class="card">
-            <h2>Wake-up challenge</h2>
-            <p>When your alarm rings, tap Scan NFC and hold your phone near your programmed NFC tag.</p>
+        <!-- Appears when the alarm starts ringing -->
 
-            <button type="button" id="scanNfcButton" class="scan-button">
+        <section id="wakeupSection" class="card" hidden>
+            <h2>Time to wake up!</h2>
+
+            <p>
+                Your alarm is ringing. Scan your programmed
+                NFC tag to unlock the maths challenge.
+            </p>
+
+            <button
+                type="button"
+                id="scanNfcButton"
+                class="scan-button"
+            >
                 Scan NFC
             </button>
 
-            <p id="nfcStatus" class="status" role="status" aria-live="polite">
-                NFC scanning has not started.
+            <p
+                id="nfcStatus"
+                class="status"
+                role="status"
+                aria-live="polite"
+            >
+                Waiting for NFC scan.
             </p>
         </section>
 
-        <section id="quizSection" class="card quiz-card" hidden>
-            <p id="questionProgress" class="section-label">Question 1 of 5</p>
+        <!-- Appears only after a successful NFC scan -->
 
-            <h2> Solve to dismiss your alarm</h2>
+        <section id="quizSection" class="card quiz-card" hidden>
+            <p id="questionProgress" class="section-label">
+                Question 1 of 5
+            </p>
+
+            <h2>Solve to dismiss your alarm</h2>
 
             <p id="question" class="question">-- + -- = ?</p>
 
             <form id="answerForm">
                 <label for="answerInput">Your answer</label>
+
                 <input
                     type="number"
                     id="answerInput"
@@ -83,28 +117,25 @@
                 <button type="submit">Submit Answer</button>
             </form>
 
-            <p id="answerFeedback" class="status" role="status" aria-live="polite"></p>
+            <p
+                id="answerFeedback"
+                class="status"
+                role="status"
+                aria-live="polite"
+            ></p>
         </section>
+
+        <!-- Appears after all five correct answers -->
 
         <section id="successSection" class="card success-card" hidden>
             <h2>Challenge completed!</h2>
-            <p>You answered all five questions correctly. Your alarm has stopped.</p>
+            <p>
+                You answered all five questions correctly.
+                Your alarm has stopped.
+            </p>
         </section>
 
-        <section class="card sound-card">
-            <h2>Audio test</h2>
-            <p>Test your alarm sound before scheduling an alarm.</p>
-
-            <div class="button-row">
-                <button type="button" id="testSoundButton" class="secondary">
-                    Test Sound
-                </button>
-
-                <button type="button" id="stopSoundButton" class="secondary">
-                    Stop Test Sound
-                </button>
-            </div>
-        </section>
+        <!-- Predefined alarm sound -->
 
         <audio
             id="alarmSound"
@@ -116,6 +147,7 @@
         <footer>
             <p>NFC Maths Alarm · Wake up and think!</p>
         </footer>
+
     </main>
 </body>
 </html>
