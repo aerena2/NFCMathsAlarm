@@ -27,26 +27,32 @@ let nfcScanning = false;
 let questions = [];
 let currentQuestionIndex = 0;
 
+
 // Set a new alarm.
 setAlarmButton.addEventListener("click", () => {
   const selectedTime = alarmTime.value;
 
   if (!selectedTime) {
-    alarmStatus.textContent = "Please select an alarm date and time.";
+    alarmStatus.textContent =
+      "Please select an alarm date and time.";
     return;
   }
 
   const alarmDate = new Date(selectedTime);
 
-  if (Number.isNaN(alarmDate.getTime()) || alarmDate <= new Date()) {
-    alarmStatus.textContent = "Please select a future date and time.";
+  if (
+    Number.isNaN(alarmDate.getTime()) ||
+    alarmDate.getTime() <= Date.now()
+  ) {
+    alarmStatus.textContent =
+      "Please select a future date and time.";
     return;
   }
 
   stopAlarm();
-  scheduledAlarm = alarmDate.getTime();
-
   resetChallenge();
+
+  scheduledAlarm = alarmDate.getTime();
 
   alarmStatus.textContent =
     "Alarm set for " + alarmDate.toLocaleString() + ".";
@@ -54,18 +60,22 @@ setAlarmButton.addEventListener("click", () => {
   setAlarmButton.textContent = "Update Alarm";
 });
 
-// Cancel the scheduled alarm.
+
+// Cancel the alarm.
 cancelAlarmButton.addEventListener("click", () => {
   scheduledAlarm = null;
 
   stopAlarm();
   resetChallenge();
 
-  alarmStatus.textContent = "Alarm cancelled. No alarm is set.";
+  alarmStatus.textContent =
+    "Alarm cancelled. No alarm is set.";
+
   setAlarmButton.textContent = "Set Alarm";
 });
 
-// Check the scheduled alarm every second while this page is running.
+
+// Check the alarm every second while the page is running.
 function checkAlarm() {
   if (
     scheduledAlarm !== null &&
@@ -78,7 +88,8 @@ function checkAlarm() {
 
 setInterval(checkAlarm, 1000);
 
-// Start ringing and show only the NFC instruction.
+
+// Start the alarm and display only the NFC instruction.
 function startAlarm() {
   if (alarmRinging) return;
 
@@ -97,14 +108,18 @@ function startAlarm() {
 
   alarmSound.play().catch((error) => {
     console.log("Alarm audio could not start automatically:", error);
+
     nfcStatus.textContent =
-      "Tap the page if sound is blocked, then scan your NFC tag.";
+      "If sound is blocked, interact with the page to enable audio.";
   });
 }
 
-// Make the label work with both a tap and keyboard activation.
+
+// Make the label clickable.
 scanNfcLabel.addEventListener("click", startNfcScanning);
 
+
+// Also support keyboard activation.
 scanNfcLabel.addEventListener("keydown", (event) => {
   if (event.key === "Enter" || event.key === " ") {
     event.preventDefault();
@@ -112,11 +127,12 @@ scanNfcLabel.addEventListener("keydown", (event) => {
   }
 });
 
-// Start NFC scanning only when the user taps the instruction.
+
+// Start scanning only when the alarm is ringing
+// and the NFC instruction is visible.
 async function startNfcScanning() {
-  if (!alarmRinging || !wakeupSection.hidden === false) {
-    // The alarm must be ringing before NFC scanning can begin.
-    if (!alarmRinging) return;
+  if (!alarmRinging || wakeupSection.hidden) {
+    return;
   }
 
   if (nfcScanning) {
@@ -127,7 +143,7 @@ async function startNfcScanning() {
 
   if (!("NDEFReader" in window)) {
     nfcStatus.textContent =
-      "Web NFC is not supported here. Use a compatible Android phone and Chrome over HTTPS.";
+      "Web NFC is not supported. Use a compatible Android phone and Chrome over HTTPS.";
     return;
   }
 
@@ -170,7 +186,8 @@ async function startNfcScanning() {
   }
 }
 
-// Stop NFC scanning safely.
+
+// Stop NFC scanning.
 function stopNfcScanning() {
   if (nfcAbortController) {
     nfcAbortController.abort();
@@ -181,9 +198,11 @@ function stopNfcScanning() {
   nfcScanning = false;
 }
 
-// Generate a simple arithmetic question.
+
+// Generate an arithmetic question.
 function generateQuestion() {
   const operations = ["+", "-", "*"];
+
   const operation =
     operations[Math.floor(Math.random() * operations.length)];
 
@@ -200,7 +219,6 @@ function generateQuestion() {
 
     answer = a - b;
   } else {
-    // Keep multiplication questions reasonably small.
     a = Math.floor(Math.random() * 12) + 1;
     b = Math.floor(Math.random() * 12) + 1;
     answer = a * b;
@@ -208,15 +226,20 @@ function generateQuestion() {
 
   return {
     text: `${a} ${operation} ${b} = ?`,
-    answer
+    answer: answer
   };
 }
 
-// Reveal maths questions only after a successful NFC scan.
+
+// Display maths questions only after a successful NFC scan.
 function startMathsChallenge() {
   if (!alarmRinging) return;
 
-  questions = Array.from({ length: 5 }, () => generateQuestion());
+  questions = Array.from(
+    { length: 5 },
+    () => generateQuestion()
+  );
+
   currentQuestionIndex = 0;
 
   wakeupSection.hidden = true;
@@ -224,10 +247,11 @@ function startMathsChallenge() {
   successSection.hidden = true;
 
   answerFeedback.textContent = "";
-  showQuestion();
 
+  showQuestion();
   answerInput.focus();
 }
+
 
 // Display the current question.
 function showQuestion() {
@@ -246,11 +270,14 @@ function showQuestion() {
   answerFeedback.textContent = "";
 }
 
-// Check each submitted answer.
+
+// Check the submitted answer.
 answerForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  if (!alarmRinging || quizSection.hidden) return;
+  if (!alarmRinging || quizSection.hidden) {
+    return;
+  }
 
   const enteredAnswer = answerInput.value.trim();
 
@@ -260,7 +287,8 @@ answerForm.addEventListener("submit", (event) => {
   }
 
   const numericAnswer = Number(enteredAnswer);
-  const correctAnswer = questions[currentQuestionIndex].answer;
+  const correctAnswer =
+    questions[currentQuestionIndex].answer;
 
   if (numericAnswer === correctAnswer) {
     currentQuestionIndex++;
@@ -269,6 +297,7 @@ answerForm.addEventListener("submit", (event) => {
       completeChallenge();
     } else {
       answerFeedback.textContent = "Correct! Next question.";
+
       showQuestion();
       answerInput.focus();
     }
@@ -280,7 +309,9 @@ answerForm.addEventListener("submit", (event) => {
   }
 });
 
-// Stop the alarm and return to the normal alarm page.
+
+// Stop the alarm after all five answers are correct
+// and return to the normal alarm-setting page.
 function completeChallenge() {
   scheduledAlarm = null;
 
@@ -292,6 +323,7 @@ function completeChallenge() {
 
   setAlarmButton.textContent = "Set Alarm";
 }
+
 
 // Stop the sound and hide the NFC and maths sections.
 function stopAlarm() {
@@ -307,13 +339,15 @@ function stopAlarm() {
   successSection.hidden = true;
 }
 
-// Clear the previous challenge and its feedback.
+
+// Reset challenge-related content.
 function resetChallenge() {
   questions = [];
   currentQuestionIndex = 0;
 
   answerInput.value = "";
   questionElement.textContent = "";
+
   questionProgress.textContent = "QUESTION 1 OF 5";
   answerFeedback.textContent = "";
 
@@ -321,12 +355,17 @@ function resetChallenge() {
     "Tap the instruction above, then scan your NFC tag.";
 }
 
+
 // Register the service worker for PWA support.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
+    navigator.serviceWorker
+      .register("./service-worker.js")
       .catch((error) => {
-        console.error("Service worker registration failed:", error);
+        console.error(
+          "Service worker registration failed:",
+          error
+        );
       });
   });
 }
