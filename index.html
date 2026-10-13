@@ -20,6 +20,7 @@
 
 <body>
   <main class="app-container">
+
     <header class="app-header">
       <p class="eyebrow">WAKE UP WITH PURPOSE</p>
       <h1>NFC Maths Alarm</h1>
@@ -50,13 +51,15 @@
       </p>
     </section>
 
-    <!-- Visible only while the alarm is ringing and before NFC scan -->
+    <!-- Visible only when the alarm rings -->
     <section id="wakeupSection" class="card alarm-card" hidden>
       <h2>Your alarm is ringing!</h2>
+
       <p class="instruction">
         Scan your NFC tag to unlock the maths challenge.
       </p>
 
+      <!-- Clickable text, not a button -->
       <p
         id="scanNfcLabel"
         class="scan-nfc-label"
@@ -72,15 +75,19 @@
       </p>
     </section>
 
-    <!-- Hidden until a successful NFC scan -->
+    <!-- Maths questions stay hidden until NFC is scanned -->
     <section id="quizSection" class="card quiz-card" hidden>
-      <p id="questionProgress" class="eyebrow">QUESTION 1 OF 5</p>
+      <p id="questionProgress" class="eyebrow">
+        QUESTION 1 OF 5
+      </p>
+
       <h2>Maths Challenge</h2>
 
       <p id="question" class="question-text"></p>
 
       <form id="answerForm">
         <label for="answerInput">Your answer</label>
+
         <input
           type="number"
           id="answerInput"
@@ -99,11 +106,20 @@
       <p id="answerFeedback" class="status" aria-live="polite"></p>
     </section>
 
-    <!-- Hidden unless the challenge is completed -->
+    <!-- Hidden after successful dismissal -->
     <section id="successSection" class="card success-card" hidden>
       <h2>Alarm dismissed!</h2>
       <p>You solved all five questions correctly. Have a great day!</p>
     </section>
+
+    <!-- Alarm sound -->
+    <audio
+      id="alarmSound"
+      src="./sound/alarm.mp3"
+      preload="auto"
+      loop
+    ></audio>
+
   </main>
 </body>
 </html>
