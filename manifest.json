@@ -1,0 +1,13 @@
+
+{
+    "id": "./",
+    "name": "NFC Maths Alarm",
+    "short_name": "Maths Alarm",
+    "description": "An alarm that requires an NFC scan and five maths answers.",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#f3f6fc",
+    "theme_color": "#172554"
+}
