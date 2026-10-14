@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "nfc-maths-alarm-v4";
+const CACHE_NAME = "nfc-maths-alarm-v5";
 
 const APP_FILES = [
   "./",
@@ -11,10 +11,10 @@ const APP_FILES = [
 ];
 
 self.addEventListener("install", (event) => {
-  self.skipWaiting();
-
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_FILES))
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(APP_FILES))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -24,8 +24,11 @@ self.addEventListener("activate", (event) => {
       .then((names) =>
         Promise.all(
           names
-            .filter((name) => name.startsWith("nfc-maths-alarm-") &&
-                              name !== CACHE_NAME)
+            .filter(
+              (name) =>
+                name.startsWith("nfc-maths-alarm-") &&
+                name !== CACHE_NAME
+            )
             .map((name) => caches.delete(name))
         )
       )
@@ -63,6 +66,7 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(async () => {
           const cached = await caches.match(request);
+
           if (cached) return cached;
 
           return caches.match("./index.html");
