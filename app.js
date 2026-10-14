@@ -19,8 +19,7 @@ const successSection = document.getElementById("successSection");
 const alarmSound = document.getElementById("alarmSound");
 
 const STORAGE_KEY = "nfcMathsAlarmState";
-const CHALLENGE_URL =
-  new URLSearchParams(window.location.search).get("challenge") === "1";
+const CHALLENGE_URL = window.location.search.includes("challenge=1");
 
 let scheduledAlarm = null;
 let alarmRinging = false;
