@@ -253,9 +253,9 @@ function startMathsChallenge() {
     currentQuestionIndex = 0;
   }
 
-  wakeupSection.hidden = true;
-  quizSection.hidden = false;
-  successSection.hidden = true;
+  wakeupSection = true;
+  quizSection = false;
+  successSection = true;
 
   showQuestion();
   saveState();
