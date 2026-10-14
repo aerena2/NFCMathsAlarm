@@ -125,6 +125,7 @@ function playAlarmSound() {
   });
 }
 
+
 function startAlarm() {
   if (alarmRinging) return;
 
@@ -133,16 +134,13 @@ function startAlarm() {
 
   playAlarmSound();
 
-  if (CHALLENGE_URL) {
-    startMathsChallenge();
-  } else {
-    wakeupSection.hidden = false;
-    quizSection.hidden = true;
-    successSection.hidden = true;
+  alarmSection.hidden = true;
+  wakeupSection.hidden = false;
+  quizSection.hidden = true;
+  successSection.hidden = true;
 
-    nfcStatus.textContent =
-      "Tap your NFC tag to open the maths challenge.";
-  }
+  nfcStatus.textContent =
+    "Tap your NFC tag to open the maths challenge.";
 
   saveState();
 }
