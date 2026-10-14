@@ -18,41 +18,40 @@ const answerFeedback = document.getElementById("answerFeedback");
 const successSection = document.getElementById("successSection");
 const alarmSound = document.getElementById("alarmSound");
 
-const CHALLENGE_URL = new URL(window.location.href).searchParams.get("challenge") === "1";
+const STORAGE_KEY = "nfcMathsAlarmState";
+const CHALLENGE_URL =
+  new URLSearchParams(window.location.search).get("challenge") === "1";
 
 let scheduledAlarm = null;
 let alarmRinging = false;
 let nfcReader = null;
 let nfcAbortController = null;
 let nfcScanning = false;
-
 let questions = [];
 let currentQuestionIndex = 0;
 
-const STORAGE_KEY = "nfcMathsAlarmState";
-
 function saveState() {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-      scheduledAlarm,
-      alarmRinging,
-      questions,
-      currentQuestionIndex
-    }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        scheduledAlarm,
+        alarmRinging,
+        questions,
+        currentQuestionIndex
+      })
+    );
   } catch (error) {
-    console.warn("Could not save alarm state:", error);
+    console.error("Could not save alarm state:", error);
   }
 }
 
 function loadState() {
   try {
-    const saved = sessionStorage.getItem(STORAGE_KEY);
-
-    if (!saved) return null;
-
-    return JSON.parse(saved);
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
   } catch (error) {
-    console.warn("Could not load alarm state:", error);
+    console.error("Could not load alarm state:", error);
     return null;
   }
 }
@@ -77,26 +76,25 @@ function generateQuestion() {
     answer = a * b;
   }
 
-  return { text: `${a} ${operation} ${b} = ?`, answer };
+  return {
+    text: `${a} ${operation} ${b} = ?`,
+    answer
+  };
 }
 
 function resetChallenge() {
   questions = [];
   currentQuestionIndex = 0;
-
   answerInput.value = "";
   questionElement.textContent = "";
   questionProgress.textContent = "QUESTION 1 OF 5";
   answerFeedback.textContent = "";
-
-  nfcStatus.textContent =
-    "Tap the instruction above, then scan your NFC tag.";
-
-  saveState();
 }
 
 function stopNfcScanning() {
-  if (nfcAbortController) nfcAbortController.abort();
+  if (nfcAbortController) {
+    nfcAbortController.abort();
+  }
 
   nfcAbortController = null;
   nfcReader = null;
@@ -121,17 +119,16 @@ function startAlarm() {
   if (alarmRinging) return;
 
   alarmRinging = true;
-
   wakeupSection.hidden = true;
   quizSection.hidden = true;
   successSection.hidden = true;
 
-  alarmStatus.textContent = "Alarm is ringing!";
-  alarmSound.currentTime = 0;
+  alarmStatus.textContent = "Your alarm is ringing!";
 
+  alarmSound.currentTime = 0;
   alarmSound.play().catch(() => {
     alarmStatus.textContent =
-      "Alarm is due. Tap the page to allow sound playback.";
+      "Alarm is due. Tap the page if sound does not play.";
   });
 
   if (CHALLENGE_URL) {
@@ -139,7 +136,7 @@ function startAlarm() {
   } else {
     wakeupSection.hidden = false;
     nfcStatus.textContent =
-      "Tap the instruction above, then scan your NFC tag.";
+      "Tap your NFC tag to open the maths challenge.";
   }
 
   saveState();
@@ -187,7 +184,6 @@ setAlarmButton.addEventListener("click", () => {
 
 cancelAlarmButton.addEventListener("click", () => {
   scheduledAlarm = null;
-
   stopAlarm();
   resetChallenge();
 
@@ -214,7 +210,7 @@ async function startNfcScanning() {
 
   if (!("NDEFReader" in window)) {
     nfcStatus.textContent =
-      "Web NFC is not supported in this browser. Use compatible Android Chrome over HTTPS.";
+      "Use a compatible Android browser over HTTPS, or tap your programmed NFC tag to open the challenge link.";
     return;
   }
 
@@ -243,10 +239,10 @@ async function startNfcScanning() {
       "Ready to scan. Hold your NFC tag near the back of your phone.";
   } catch (error) {
     console.error("NFC scanning error:", error);
-
     nfcScanning = false;
+
     nfcStatus.textContent =
-      "Could not start scanning. Check NFC settings and browser permission.";
+      "Could not start scanning. Check NFC settings and browser permissions.";
   }
 }
 
@@ -273,13 +269,14 @@ function showQuestion() {
   }
 
   questionProgress.textContent =
-    `QUESTION ${currentQuestionIndex + 1} OF ${questions.length}`;
+    `QUESTION ${currentQuestionIndex + 1} OF 5`;
 
   questionElement.textContent =
     questions[currentQuestionIndex].text;
 
   answerInput.value = "";
   answerFeedback.textContent = "";
+  answerInput.focus();
 }
 
 answerForm.addEventListener("submit", (event) => {
@@ -306,27 +303,25 @@ answerForm.addEventListener("submit", (event) => {
     } else {
       showQuestion();
       answerFeedback.textContent = "Correct! Next question.";
-      answerInput.focus();
     }
   } else {
     answerFeedback.textContent =
       "Incorrect answer. Try again! The alarm is still ringing.";
+
     answerInput.select();
   }
 });
 
 function completeChallenge() {
   scheduledAlarm = null;
-
   stopAlarm();
   resetChallenge();
 
   alarmStatus.textContent =
-    "Alarm dismissed. Set your next alarm.";
+    "Great job! Alarm dismissed. Set your next alarm.";
 
   setAlarmButton.textContent = "Set Alarm";
 
-  // Return to the normal alarm-setting URL.
   if (CHALLENGE_URL) {
     window.history.replaceState(
       {},
@@ -336,44 +331,105 @@ function completeChallenge() {
   }
 }
 
+/* Keep the alarm state synchronized between tabs. */
+window.addEventListener("storage", (event) => {
+  if (event.key !== STORAGE_KEY || !event.newValue) return;
+
+  try {
+    const sharedState = JSON.parse(event.newValue);
+
+    if (
+      !sharedState.alarmRinging &&
+      sharedState.scheduledAlarm === null &&
+      (alarmRinging || scheduledAlarm !== null)
+    ) {
+      scheduledAlarm = null;
+      stopAlarm();
+      resetChallenge();
+
+      alarmStatus.textContent =
+        "Alarm dismissed or cancelled in another tab.";
+
+      setAlarmButton.textContent = "Set Alarm";
+      return;
+    }
+
+    if (
+      !alarmRinging &&
+      sharedState.scheduledAlarm !== null
+    ) {
+      scheduledAlarm = sharedState.scheduledAlarm;
+      alarmTime.value = toLocalDateTimeInput(scheduledAlarm);
+
+      alarmStatus.textContent =
+        "Alarm set for " +
+        new Date(scheduledAlarm).toLocaleString() +
+        ".";
+
+      setAlarmButton.textContent = "Update Alarm";
+    }
+  } catch (error) {
+    console.error("Could not sync alarm state:", error);
+  }
+});
+
+function toLocalDateTimeInput(timestamp) {
+  const date = new Date(timestamp);
+  const offset = date.getTimezoneOffset() * 60000;
+
+  return new Date(date.getTime() - offset)
+    .toISOString()
+    .slice(0, 16);
+}
+
 function restoreSavedState() {
   const saved = loadState();
 
   if (!saved) {
     if (CHALLENGE_URL) {
       alarmStatus.textContent =
-        "Challenge link opened. Set an alarm first, then tap your NFC tag when it rings.";
+        "No alarm was found. Open the main page and set an alarm first.";
     }
+
     return;
   }
 
   scheduledAlarm = saved.scheduledAlarm ?? null;
-  alarmRinging = false;
   questions = Array.isArray(saved.questions) ? saved.questions : [];
   currentQuestionIndex = saved.currentQuestionIndex ?? 0;
 
   if (scheduledAlarm !== null) {
-    alarmTime.value = new Date(scheduledAlarm)
-      .toISOString()
-      .slice(0, 16);
+    alarmTime.value = toLocalDateTimeInput(scheduledAlarm);
 
     alarmStatus.textContent =
-      "Alarm set for " + new Date(scheduledAlarm).toLocaleString() + ".";
+      "Alarm set for " +
+      new Date(scheduledAlarm).toLocaleString() +
+      ".";
+
     setAlarmButton.textContent = "Update Alarm";
   }
 
-  // The challenge URL can show the quiz only if an alarm was already ringing.
-  if (CHALLENGE_URL && saved.alarmRinging && questions.length === 5) {
+  if (CHALLENGE_URL && saved.alarmRinging) {
     alarmRinging = true;
+
+    if (questions.length !== 5) {
+      questions = Array.from({ length: 5 }, generateQuestion);
+      currentQuestionIndex = 0;
+    }
+
     startMathsChallenge();
 
+    alarmSound.currentTime = 0;
     alarmSound.play().catch(() => {
       alarmStatus.textContent =
-        "Challenge restored. Tap the page if sound does not play.";
+        "Challenge opened. Tap the page if sound does not play.";
     });
+  } else if (CHALLENGE_URL) {
+    alarmStatus.textContent =
+      "Your challenge link opened. Set an alarm on the main page first, then tap your NFC tag when the alarm rings.";
   } else if (saved.alarmRinging) {
     alarmStatus.textContent =
-      "Your alarm was ringing before this page reopened. Please check the alarm.";
+      "Your alarm was ringing before this page reopened. Tap your NFC tag to open the challenge.";
   }
 
   saveState();
@@ -383,7 +439,8 @@ restoreSavedState();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
+    navigator.serviceWorker
+      .register("./service-worker.js")
       .catch((error) => {
         console.error("Service worker registration failed:", error);
       });
