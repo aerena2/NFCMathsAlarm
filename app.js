@@ -245,17 +245,19 @@ async function startNfcScanning() {
   }
 }
 
-function startMathsChallenge() {
+  function startMathsChallenge() {
   if (!alarmRinging) return;
+
+  document.getElementById("alarmSection").hidden = true;
 
   if (questions.length !== 5) {
     questions = Array.from({ length: 5 }, generateQuestion);
     currentQuestionIndex = 0;
   }
 
-  wakeupSection = true;
-  quizSection = false;
-  successSection = true;
+  wakeupSection.hidden = true;
+  quizSection.hidden = false;
+  successSection.hidden = true;
 
   showQuestion();
   saveState();
