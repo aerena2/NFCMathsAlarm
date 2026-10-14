@@ -19,7 +19,8 @@ const successSection = document.getElementById("successSection");
 const alarmSound = document.getElementById("alarmSound");
 
 const STORAGE_KEY = "nfcMathsAlarmState";
-const CHALLENGE_URL = window.location.search.includes("challenge=1");
+const CHALLENGE_URL =
+  new URLSearchParams(window.location.search).get("challenge") === "1";
 
 let scheduledAlarm = null;
 let alarmRinging = false;
@@ -383,29 +384,47 @@ function toLocalDateTimeInput(timestamp) {
     .slice(0, 16);
 }
 
+
 function restoreSavedState() {
   const saved = loadState();
 
   if (CHALLENGE_URL) {
-    document.getElementById("alarmSection").hidden = true;
+    // Hide the normal alarm screen if it exists.
+    const alarmSection = document.getElementById("alarmSection");
 
-    // Open the maths challenge directly from the NFC URL.
+    if (alarmSection) {
+      alarmSection.hidden = true;
+    }
+
+    // Start challenge mode directly from the NFC URL.
     alarmRinging = true;
 
-    if (!saved || !saved.alarmRinging || !Array.isArray(saved.questions) ||
-        saved.questions.length !== 5) {
+    if (
+      !saved ||
+      !Array.isArray(saved.questions) ||
+      saved.questions.length !== 5
+    ) {
       questions = Array.from({ length: 5 }, generateQuestion);
       currentQuestionIndex = 0;
     } else {
       questions = saved.questions;
-      currentQuestionIndex = saved.currentQuestionIndex || 0;
+      currentQuestionIndex = Math.min(
+        saved.currentQuestionIndex || 0,
+        4
+      );
     }
 
-    startMathsChallenge();
+    wakeupSection.hidden = true;
+    successSection.hidden = true;
+    quizSection.hidden = false;
 
+    showQuestion();
+    saveState();
+
+    // Try to play the alarm sound.
     alarmSound.play().catch(() => {
       answerFeedback.textContent =
-        "Tap the page if the alarm sound does not play.";
+        "Tap the page to enable alarm sound.";
     });
 
     return;
@@ -419,8 +438,12 @@ function restoreSavedState() {
 
   if (scheduledAlarm !== null) {
     alarmTime.value = toLocalDateTimeInput(scheduledAlarm);
+
     alarmStatus.textContent =
-      "Alarm set for " + new Date(scheduledAlarm).toLocaleString() + ".";
+      "Alarm set for " +
+      new Date(scheduledAlarm).toLocaleString() +
+      ".";
+
     setAlarmButton.textContent = "Update Alarm";
   }
 
@@ -428,7 +451,7 @@ function restoreSavedState() {
     alarmStatus.textContent =
       "Your alarm was ringing. Tap your NFC tag to open the challenge.";
   }
-
+}
   saveState();
 }
 restoreSavedState();
