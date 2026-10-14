@@ -386,14 +386,32 @@ function toLocalDateTimeInput(timestamp) {
 function restoreSavedState() {
   const saved = loadState();
 
-  if (!saved) {
-    if (CHALLENGE_URL) {
-      alarmStatus.textContent =
-        "No alarm was found. Open the main page and set an alarm first.";
+  if (CHALLENGE_URL) {
+    document.getElementById("alarmSection").hidden = true;
+
+    // Open the maths challenge directly from the NFC URL.
+    alarmRinging = true;
+
+    if (!saved || !saved.alarmRinging || !Array.isArray(saved.questions) ||
+        saved.questions.length !== 5) {
+      questions = Array.from({ length: 5 }, generateQuestion);
+      currentQuestionIndex = 0;
+    } else {
+      questions = saved.questions;
+      currentQuestionIndex = saved.currentQuestionIndex || 0;
     }
+
+    startMathsChallenge();
+
+    alarmSound.play().catch(() => {
+      answerFeedback.textContent =
+        "Tap the page if the alarm sound does not play.";
+    });
 
     return;
   }
+
+  if (!saved) return;
 
   scheduledAlarm = saved.scheduledAlarm ?? null;
   questions = Array.isArray(saved.questions) ? saved.questions : [];
@@ -401,41 +419,18 @@ function restoreSavedState() {
 
   if (scheduledAlarm !== null) {
     alarmTime.value = toLocalDateTimeInput(scheduledAlarm);
-
     alarmStatus.textContent =
-      "Alarm set for " +
-      new Date(scheduledAlarm).toLocaleString() +
-      ".";
-
+      "Alarm set for " + new Date(scheduledAlarm).toLocaleString() + ".";
     setAlarmButton.textContent = "Update Alarm";
   }
 
-  if (CHALLENGE_URL && saved.alarmRinging) {
-    alarmRinging = true;
-
-    if (questions.length !== 5) {
-      questions = Array.from({ length: 5 }, generateQuestion);
-      currentQuestionIndex = 0;
-    }
-
-    startMathsChallenge();
-
-    alarmSound.currentTime = 0;
-    alarmSound.play().catch(() => {
-      alarmStatus.textContent =
-        "Challenge opened. Tap the page if sound does not play.";
-    });
-  } else if (CHALLENGE_URL) {
+  if (saved.alarmRinging) {
     alarmStatus.textContent =
-      "Your challenge link opened. Set an alarm on the main page first, then tap your NFC tag when the alarm rings.";
-  } else if (saved.alarmRinging) {
-    alarmStatus.textContent =
-      "Your alarm was ringing before this page reopened. Tap your NFC tag to open the challenge.";
+      "Your alarm was ringing. Tap your NFC tag to open the challenge.";
   }
 
   saveState();
 }
-
 restoreSavedState();
 
 if ("serviceWorker" in navigator) {
