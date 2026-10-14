@@ -7,119 +7,249 @@
 
   <title>NFC Maths Alarm</title>
 
-  <meta name="theme-color" content="#f5f7ff">
-  <meta
-    name="description"
-    content="An alarm that requires an NFC scan and five maths answers to dismiss."
-  >
+  <meta name="theme-color" content="#172554">
+  <meta name="description" content="An alarm that challenges you with five maths questions.">
 
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./style.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #eef2ff;
+      color: #172554;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      width: 100%;
+      max-width: 480px;
+      padding: 28px;
+      border-radius: 20px;
+      background: #ffffff;
+      box-shadow: 0 12px 35px rgba(23, 37, 84, 0.12);
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin-bottom: 28px;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button.secondary {
+      background: #e2e8f0;
+      color: #172554;
+    }
+
+    button.secondary:hover {
+      background: #cbd5e1;
+    }
+
+    #alarmStatus,
+    #nfcStatus,
+    #answerFeedback {
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      padding: 12px;
+      margin-top: 18px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    .challenge-card {
+      margin-top: 18px;
+      padding: 20px;
+      border-radius: 14px;
+      background: #f8fafc;
+      text-align: center;
+    }
+
+    #questionProgress {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    #question {
+      margin: 24px 0;
+      font-size: 34px;
+      font-weight: bold;
+    }
+
+    #answerFeedback {
+      min-height: 24px;
+      font-size: 14px;
+    }
+
+    #scanNfcLabel {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 400px) {
+      main {
+        padding: 22px 18px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+
   <script src="./app.js" defer></script>
 </head>
 
 <body>
-  <main class="app-container">
+  <main>
+    <h1>NFC Maths Alarm</h1>
+    <p class="subtitle">
+      Wake up, scan your NFC tag, and solve five maths questions to dismiss your alarm.
+    </p>
 
-    <header class="app-header">
-      <p class="eyebrow">WAKE UP WITH PURPOSE</p>
-      <h1>NFC Maths Alarm</h1>
-      <p class="subtitle">
-        Set your alarm. Scan your NFC tag. Solve five questions.
-      </p>
-    </header>
-
-    <!-- Normal alarm-setting page -->
-    <section id="alarmSection" class="card">
+    <section id="alarmSection">
       <h2>Set your alarm</h2>
 
-      <label for="alarmTime">Alarm date and time</label>
-      <input type="datetime-local" id="alarmTime" required>
-
-      <div class="button-row">
-        <button type="button" id="setAlarmButton" class="primary-button">
-          Set Alarm
-        </button>
-
-        <button type="button" id="cancelAlarmButton" class="secondary-button">
-          Cancel Alarm
-        </button>
-      </div>
-
-      <p id="alarmStatus" class="status" aria-live="polite">
-        No alarm set.
-      </p>
-    </section>
-
-    <!-- Visible only when the alarm rings -->
-    <section id="wakeupSection" class="card alarm-card" hidden>
-      <h2>Your alarm is ringing!</h2>
-
-      <p class="instruction">
-        Scan your NFC tag to unlock the maths challenge.
-      </p>
-
-      <!-- Clickable text, not a button -->
-      <p
-        id="scanNfcLabel"
-        class="scan-nfc-label"
-        role="button"
-        tabindex="0"
-        aria-label="Scan NFC to dismiss the alarm"
+      <label for="alarmTime">Choose date and time</label>
+      <input
+        type="datetime-local"
+        id="alarmTime"
+        required
       >
-        Scan NFC to dismiss the alarm
-      </p>
 
-      <p id="nfcStatus" class="status" aria-live="polite">
-        Tap the instruction above, then scan your NFC tag.
+      <button type="button" id="setAlarmButton">
+        Set Alarm
+      </button>
+
+      <button type="button" id="cancelAlarmButton" class="secondary">
+        Cancel Alarm
+      </button>
+
+      <p id="alarmStatus" class="status" role="status" aria-live="polite">
+        No alarm is set.
       </p>
     </section>
 
-    <!-- Maths questions stay hidden until NFC is scanned -->
-    <section id="quizSection" class="card quiz-card" hidden>
-      <p id="questionProgress" class="eyebrow">
-        QUESTION 1 OF 5
-      </p>
+    <section id="wakeupSection" hidden>
+      <div class="challenge-card">
+        <h2>Time to wake up!</h2>
+        <p>Your alarm is ringing. Tap your NFC tag to open the maths challenge.</p>
 
-      <h2>Maths Challenge</h2>
-
-      <p id="question" class="question-text"></p>
-
-      <form id="answerForm">
-        <label for="answerInput">Your answer</label>
-
-        <input
-          type="number"
-          id="answerInput"
-          inputmode="numeric"
-          step="1"
-          required
-          autocomplete="off"
-          placeholder="Enter your answer"
+        <p
+          id="scanNfcLabel"
+          role="button"
+          tabindex="0"
         >
+          Or tap here to start NFC scanning
+        </p>
 
-        <button type="submit" class="primary-button">
-          Submit Answer
-        </button>
-      </form>
-
-      <p id="answerFeedback" class="status" aria-live="polite"></p>
+        <p id="nfcStatus" role="status" aria-live="polite">
+          Tap your NFC tag to open the maths challenge.
+        </p>
+      </div>
     </section>
 
-    <!-- Hidden after successful dismissal -->
-    <section id="successSection" class="card success-card" hidden>
-      <h2>Alarm dismissed!</h2>
-      <p>You solved all five questions correctly. Have a great day!</p>
+    <section id="quizSection" hidden>
+      <div class="challenge-card">
+        <h2>Solve to dismiss</h2>
+
+        <p id="questionProgress">QUESTION 1 OF 5</p>
+
+        <p id="question">8 + 4 = ?</p>
+
+        <form id="answerForm">
+          <label for="answerInput">Your answer</label>
+          <input
+            type="number"
+            id="answerInput"
+            placeholder="Enter your answer"
+            inputmode="numeric"
+            required
+            autocomplete="off"
+          >
+
+          <button type="submit">Submit Answer</button>
+        </form>
+
+        <p id="answerFeedback" role="status" aria-live="polite"></p>
+      </div>
     </section>
 
-    <!-- Alarm sound -->
+    <section id="successSection" hidden>
+      <div class="challenge-card">
+        <h2>Well done!</h2>
+        <p>You solved all five questions.</p>
+      </div>
+    </section>
+
     <audio
       id="alarmSound"
       src="./sound/alarm.mp3"
       preload="auto"
       loop
     ></audio>
-
   </main>
 </body>
 </html>
